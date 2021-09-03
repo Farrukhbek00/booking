@@ -5,13 +5,13 @@
         private $username = "root";
         private $password = "password";
 
-        public $connection;
+        public $conn;
 
         public function getConnection(){
-            $this->connection = null;
+            $this->conn = null;
             try{
-                $this->connection = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->database_name, $this->username, $this->password);
-                $this->connection->exec("set names utf8");
+                $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->database_name, $this->username, $this->password);
+                $this->conn->exec("set names utf8");
             }catch(PDOException $exception){
                 echo "Database could not be connected: " . $exception->getMessage();
             }
