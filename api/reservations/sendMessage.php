@@ -8,10 +8,12 @@
     include_once '../../config/database.php';
     include_once '../../class/reservations.php';
     include_once '../../class/customers.php';
+    include_once '../../class/rooms.php';
+    require_once "../../vendor/autoload.php";
 
     use PHPMailer\PHPMailer\PHPMailer;
-
-    
+    use PHPMailer\PHPMailer\Exception;
+    use PHPMailer\PHPMailer\SMTP;
 
     $database = new Database();
     $db = $database->getConnection();
@@ -26,43 +28,52 @@
     $reservation->findReservation();
 
     if ($reservation->no != null) {
-        if ($data->customer_id == $reservation->customer_id) {
-            $customer = new Customer($db);
-            $customer->id = $data->customer_id;
-            $customer->getSingleCustomer();
+        $first_customer = new Customer($db);
+        $first_customer->id = $data->customer_id;
+        $first_customer->getSingleCustomer();
 
-            //Load Composer's autoloader
-            require '../../vendor/autoload.php';  
-            $mail = new PHPMailer(); 
+        $second_customer = new Customer($db);
+        $second_customer->id = $reservation->customer_id;
+        $second_customer->getSingleCustomer();
+
+        $room = new Room($db);
+        $room->id = $data->room_id;
+        $room->getSingleRoom();
+
+        $mail = new PHPMailer(true); 
+        try {
+            $mail->SMTPDebug = 3; 
             $mail->isSMTP();
             $mail->Host = 'smtp.mailtrap.io';
             $mail->SMTPAuth = true;
-            $mail->Port = 2525;
             $mail->Username = 'a60435026f501e'; 
             $mail->Password = '83052277fb62e6';
-            $mail->SMTPSecure = 'tls';
+            $mail->SMTPSecure = 'tls'; 
+            $mail->Port = 587;
 
-            $mail->setFrom("dasas@example.com");
-            $mail->addAddress("sdas@example.com");
-            $mail->addReplyTo("1810132fz@example.com", "Reply");
-            $mail->addCC("cc@example.com");
-            $mail->addBCC("bcc@example.com");
+            $mail->setFrom('farruhzokirov00@gmail.com', 'Farrukh Zokirov');
+            $mail->addReplyTo('farruhzokirov00@gmail.com', 'Mailtrap');
+            $mail->addAddress('1810132fz@gmail.com', 'Farrukh 181O132');
+            $mail->addCC('cc1@example.com', 'Elena');
+            $mail->addBCC('bcc1@example.com', 'Alex');
 
+
+            $mail->Subject = "Booking the room";
             $mail->isHTML(true);
 
-            $mail->Subject = "Subject Text";
-            $mail->Body = "<i>Mail body in HTML</i>";
-            $mail->AltBody = "This is the plain text version of the email content";
-
-            try {
-                $mail->send();
-                // echo "Message has been sent successfully";
-            } catch (Exception $e) {
-                // echo "Mailer Error: " . $mail->ErrorInfo;
-            } 
-        } else {
-            
-        }
+            if ($data->customer_id == $reservation->customer_id) {
+                $mail->Body = "<i>Hello $first_customer->first_name $first_customer->last_name 
+                    You booked the room No $room->number from $reservation->start_date to $reservation->end_date</i>";
+            } else {
+                $mail->Body = "<i>Hello $first_customer->first_name $first_customer->last_name 
+                    Sorry, the room No $room->number bokked by $second_customer->first_name  $second_customer->last_name 
+                    from $reservation->start_date to $reservation->end_date</i>";
+            }
+            $mail->send();
+            echo "Message has been sent successfully";
+        } catch (Exception $e) {
+            echo "Mailer Error: " . $mail->ErrorInfo;
+        } 
       
         http_response_code(200);
         echo json_encode("Sent to email!");
