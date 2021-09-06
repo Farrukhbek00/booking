@@ -53,7 +53,7 @@
 
             $mail->setFrom('farruhzokirov00@gmail.com', 'Farrukh Zokirov');
             $mail->addReplyTo('farruhzokirov00@gmail.com', 'Mailtrap');
-            $mail->addAddress('1810132fz@gmail.com', 'Farrukh 181O132');
+            $mail->addAddress($first_customer->email, $first_customer->first_name . ' ' . $first_customer->last_name);
             $mail->addCC('cc1@example.com', 'Elena');
             $mail->addBCC('bcc1@example.com', 'Alex');
 
